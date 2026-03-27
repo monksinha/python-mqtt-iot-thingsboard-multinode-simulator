@@ -1,3 +1,163 @@
+## Relay + Sensor Multi-Room Simulation (Branch: relay-simulator)
+
+This branch extends the multi-room sensor simulator by adding **relay GUI simulators** that listen to ThingsBoard RPC commands and visually display ON/OFF states.
+
+### Architecture Overview
+
+Each room now has:
+
+* Sensor simulator (Python GUI → sends telemetry)
+* Relay simulator (Python GUI → listens to RPC)
+* OR real NodeMCU relay (Grow Room)
+
+| Room      | Sensor           | Relay              |
+| --------- | ---------------- | ------------------ |
+| Grow Room | Python Simulator | NodeMCU (Physical) |
+| Dark Room | Python Simulator | Python Relay GUI   |
+| Chamber   | Python Simulator | Python Relay GUI   |
+
+---
+
+### Project Structure
+
+```
+thingsboard-simulator/
+│
+├── app.py                     # Sensor simulator
+├── relay_gui.py               # Relay listener GUI
+│
+├── config/
+│   ├── grow.json
+│   ├── dark.json
+│   ├── chamber.json
+│   ├── relay_dark.json
+│   └── relay_chamber.json
+```
+
+---
+
+### Sensor Simulator
+
+Run three terminals:
+
+Grow Room:
+
+```
+python app.py config/grow.json
+```
+
+Dark Room:
+
+```
+python app.py config/dark.json
+```
+
+Chamber:
+
+```
+python app.py config/chamber.json
+```
+
+---
+
+### Relay GUI Simulator
+
+Run two terminals:
+
+Dark Room Relay:
+
+```
+python relay_gui.py config/relay_dark.json
+```
+
+Chamber Relay:
+
+```
+python relay_gui.py config/relay_chamber.json
+```
+
+These GUIs **do not send commands**.
+They **listen to ThingsBoard RPC** and update color indicators.
+
+---
+
+### RPC Format Expected from ThingsBoard
+
+```
+{
+  "method": "setState",
+  "params": {
+    "ac": true
+  }
+}
+```
+
+Mapping performed internally:
+
+| Dashboard key | GUI device |
+| ------------- | ---------- |
+| ac            | AC         |
+| humidifier    | Humidifier |
+| cooler        | Cooler     |
+| lights        | Light      |
+| wallFan       | WallFan    |
+| exhaustFan    | Exhaust    |
+
+---
+
+### Full System Simulation
+
+Running components:
+
+* 3 Sensor Simulators
+* 2 Relay Simulators
+* 1 Physical NodeMCU Relay
+* 3 ThingsBoard Dashboards
+* Alias-based device mapping
+
+---
+
+### Workflow to Reproduce
+
+1. Start ThingsBoard Docker
+2. Run all sensor simulators
+3. Run relay GUI simulators
+4. Open dashboards
+5. Toggle relays → GUI updates
+6. Move sliders → telemetry updates
+
+---
+
+### Branch Purpose
+
+This branch introduces:
+
+* Config-driven relay simulator
+* MQTT RPC listener
+* GUI state visualization
+* Multi-room relay simulation
+
+Base branch: `multi-room-simulator`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ThingsBoard Multi-Room Sensor Simulator
 
 This project simulates sensor telemetry for multiple rooms in ThingsBoard using a single Python GUI application and separate configuration files.
